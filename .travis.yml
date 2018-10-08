@@ -1,0 +1,25 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t shihyen/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run shihyen/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t shihyen/multi-client ./client
+  - docker build -t shihyen/multi-nginx  ./nginx
+  - docker build -t shihyen/multi-server ./server
+  - docker build -t shihyen/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push shihyen/multi-client
+  - docker push shihyen/multi-nginx
+  - docker push shihyen/multi-server
+  - docker push shihyen/multi-worker
+
+
+
